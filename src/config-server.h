@@ -21,4 +21,7 @@ private:
   const char *dnsName;
   ESP8266WebServer server;
   ValueHistory &valueHistory;
+
+  void handleRoot();
+  void handleConfig();
 };

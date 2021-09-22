@@ -12,6 +12,23 @@ ConfigServer::ConfigServer(const char* apName, const char* password, const char*
     WiFi.begin(apName, password);
 }
 
+
+void ConfigServer::handleRoot() {
+  std::stringstream s;
+
+  s << "Current: " << valueHistory.value(0) << '\n';
+  for (int i = 1; i < 20; ++i) {
+    s << valueHistory.value(i*5) << ", ";
+  }
+  s << valueHistory.value(20*5) << "\n";
+  server.send(200, "text/plain", s.str().c_str());
+}
+
+void ConfigServer::handleConfig() {
+  server.send(200, "text/html", "");
+}
+
+
 bool ConfigServer::handle() {
   if (initializationFinished) {
      Serial.println("Initialization finished");
@@ -30,23 +47,8 @@ bool ConfigServer::handle() {
         MDNS.begin(dnsName);
         dnsName = nullptr;
 
-        server.on("/", [this](){
-          std::stringstream s;
-
-          s << "Current: " << valueHistory.value(0) << '\n';
-          for (int i = 1; i < 20; ++i) {
-            s << valueHistory.value(i*5) << ", ";
-          }
-          s << valueHistory.value(20*5) << "\n";
-          server.send(200, "text/plain", s.str().c_str());
-
-        } );
-
-        server.on("/config", [this]()  {
-
-          server.send(200, "text/html", "");
-        });
-
+        server.on("/", std::bind(&ConfigServer::handleRoot, this));
+        server.on("/config", std::bind(&ConfigServer::handleConfig, this));
         server.onNotFound([this]() { server.send(404, "text/plain", "404: Not found"); });
 
         server.begin();
