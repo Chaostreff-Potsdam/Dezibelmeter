@@ -3,10 +3,11 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include "history.h"
+#include "config-option.h"
 
 class ConfigServer {
 public:
-  ConfigServer(const char *apName, const char *password, const char *dnsName, ValueHistory &valueHistory);
+  ConfigServer(const char *apName, const char *password, const char *dnsName, ValueHistory &valueHistory, const ConfigOption &configOption);
 
   /**
    * Handle connections.
@@ -21,7 +22,9 @@ private:
   const char *dnsName;
   ESP8266WebServer server;
   ValueHistory &valueHistory;
+  const ConfigOption &configOption;
 
   void handleRoot();
   void handleConfig();
+  void handleConfigPost();
 };

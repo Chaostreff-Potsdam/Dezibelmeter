@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <Adafruit_NeoPixel.h>
+#include "config-option.h"
 
 enum ColoringSchema {
   // Single green color
@@ -22,12 +23,13 @@ enum ShowMode {
   Delay
 };
 
-
 class Applausometer {
 public:
   Applausometer(Adafruit_NeoPixel &neoPixel);
 
   void setIntensity(float intensity);
+
+  ConfigOption configuration();
 
   ColoringSchema coleringSchema;
   ShowMode showMode;

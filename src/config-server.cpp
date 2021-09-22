@@ -4,11 +4,12 @@
 
 #include <sstream>
 
-ConfigServer::ConfigServer(const char* apName, const char* password, const char* dnsName, ValueHistory &valueHistory) :
+ConfigServer::ConfigServer(const char* apName, const char* password, const char* dnsName, ValueHistory &valueHistory, const ConfigOption &configOption) :
   initializationFinished(false),
   dnsName(dnsName),
   server(80),
-  valueHistory(valueHistory) {
+  valueHistory(valueHistory),
+  configOption(configOption) {
     WiFi.begin(apName, password);
 }
 
@@ -25,14 +26,34 @@ void ConfigServer::handleRoot() {
 }
 
 void ConfigServer::handleConfig() {
-  server.send(200, "text/html", "");
+  std::stringstream result;
+
+  result << "<html><head><title>Configuration</title></head><body>";
+
+  result << "<form action=\"/configR\" method=\"post\">";
+
+  configOption.toFormFragment(result);
+
+  result << "<input type=\"submit\" value=\"Change\" />";
+
+  result << "</form>";
+
+  result << "</body></html>";
+
+  server.send(200, "text/html", result.str().c_str());
 }
 
+void ConfigServer::handleConfigPost() {
+  configOption.changeConfiguration([this](String argName) {
+    return server.arg(argName);
+  });
+  handleConfig();
+}
 
 bool ConfigServer::handle() {
   if (initializationFinished) {
-     Serial.println("Initialization finished");
-     Serial.print("IP address:\t");
+    Serial.println("Initialization finished");
+    Serial.print("IP address:\t");
     Serial.println(WiFi.localIP());
     server.handleClient();
     return true;
@@ -49,6 +70,7 @@ bool ConfigServer::handle() {
 
         server.on("/", std::bind(&ConfigServer::handleRoot, this));
         server.on("/config", std::bind(&ConfigServer::handleConfig, this));
+        server.on("/configR", HTTP_POST, std::bind(&ConfigServer::handleConfigPost, this));
         server.onNotFound([this]() { server.send(404, "text/plain", "404: Not found"); });
 
         server.begin();

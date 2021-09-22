@@ -12,7 +12,9 @@ Applausometer applausometer(pixels);
 
 ValueHistory valueHistory;
 
-ConfigServer configServer(Config::wifiSsid, Config::wifiPassword, "applausometer", valueHistory);
+auto configuration = applausometer.configuration();
+
+ConfigServer configServer(Config::wifiSsid, Config::wifiPassword, "applausometer", valueHistory, configuration);
 
 
 void setup() {
@@ -43,6 +45,9 @@ void loop() {
   Serial.println(" dBA");
 
   float intensity = voltageValueSub / 2.6;
+
+  Serial.print(intensity);
+  Serial.println(" intensity");
 
   applausometer.setIntensity(intensity);
 
